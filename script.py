@@ -5,24 +5,32 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import requests
-
-session = HTMLSession()
-browser = webdriver.Chrome('C:\\Users\\mouis\\webDriver\\chromedriver') 
-
-browser.get('https://fbref.com/en/comps/9/stats/Premier-League-Stats')
+from selenium.webdriver.chrome.options import Options
+from flask import Flask
+from pyvirtualdisplay import Display
 
 
-elem = browser.find_element(By.XPATH, '//*[@id="all_stats_standard"]/div[1]/div/ul/li[1]')
+app = Flask(__name__)
 
-elem.click()
-#last_height = browser.execute_script("return document.body.scrollHeight")
-#browser.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-#elem1 = browser.find_element(By.XPATH, '//*[@id="all_stats_standard"]/div[1]/div/ul/li[1]/div/ul/li[4]/button')
 
-WebDriverWait(browser,10).until(EC.element_to_be_clickable((By.XPATH,'//*[@id="all_stats_standard"]/div[1]/div/ul/li[1]/div/ul/li[4]/button'))).click()
-csv = browser.find_element(By.XPATH, '//*[@id="csv_stats_standard"]')
 
-print(csv.text)
+@app.route('/<string:league>')
+def get_data_by_league(league):
+    chrome_options = Options()
+    chrome_options.headless = True
+    # chrome_options.add_argument("--headless")
+    # chrome_options.add_argument('--disable-gpu')  # Last I checked this was necessary.
+    browser = webdriver.Chrome('C:\\Users\\mouis\\webDriver\\chromedriver', options=chrome_options)
+    browser.set_window_position(-10000,0)
+    browser.get('https://fbref.com/en/comps/9/stats/Premier-League-Stats')
+    elem = browser.find_element(
+    By.XPATH, '//*[@id="all_stats_standard"]/div[1]/div/ul/li[1]')
+    elem.click()
+    WebDriverWait(browser, 10).until(EC.element_to_be_clickable((By.XPATH, '//*[@id="all_stats_standard"]/div[1]/div/ul/li[1]/div/ul/li[4]/button'))).click()
+    csv = browser.find_element(By.XPATH, '//*[@id="csv_stats_standard"]')
+    response = csv.text
+    browser.close()
+    browser.quit()
+    return response
 
-#ActionChains(browser).move_to_element(elem1).click().perform() # item.click()
-
+app.run(port=5000)
