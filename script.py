@@ -12,23 +12,44 @@ from pyvirtualdisplay import Display
 
 app = Flask(__name__)
 
+def get_league_by_number(argument): 
+    switcher = { 
+        8: "Champions-League-Stats",
+        13: "Ligue-1-Stats", 
+        11: "Serie-A-Stats",
+        19: "Europa-League-Stats",
+        20: "Bundesliga-Stats",
+        9: "Premier-League-Stats",
+        12: "La-Liga-Stats"
+    } 
+  
+    # get() method of dictionary data type returns  
+    # value of passed argument if it is present  
+    # in dictionary otherwise second argument will 
+    # be assigned as default value of passed argument 
+    return switcher.get(argument, "nothing") 
 
 
-@app.route('/<string:league>')
-def get_data_by_league(league):
+@app.route('/<int:numberOfLeague>/<string:types>')
+def get_data_by_league(numberOfLeague, types):
+    league = get_league_by_number(numberOfLeague)
     chrome_options = Options()
     chrome_options.headless = True
     # chrome_options.add_argument("--headless")
     # chrome_options.add_argument('--disable-gpu')  # Last I checked this was necessary.
     browser = webdriver.Chrome('C:\\Users\\mouis\\webDriver\\chromedriver', options=chrome_options)
-    browser.set_window_position(-10000,0)
-    browser.get('https://fbref.com/en/comps/9/stats/Premier-League-Stats')
+    link = 'https://fbref.com/en/comps/{}/'+types+'/'+league
+    link = link.format(numberOfLeague)
+    browser.get(link)
     elem = browser.find_element(
     By.XPATH, '//*[@id="all_stats_standard"]/div[1]/div/ul/li[1]')
     elem.click()
     WebDriverWait(browser, 10).until(EC.element_to_be_clickable((By.XPATH, '//*[@id="all_stats_standard"]/div[1]/div/ul/li[1]/div/ul/li[4]/button'))).click()
     csv = browser.find_element(By.XPATH, '//*[@id="csv_stats_standard"]')
     response = csv.text
+    response = response.replace(",", ";")
+    response = response.split("\n",2)[2];
+
     browser.close()
     browser.quit()
     return response
