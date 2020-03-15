@@ -42,14 +42,15 @@ def get_data_by_league(numberOfLeague, types):
     link = link.format(numberOfLeague)
     browser.get(link)
     elem = browser.find_element(
-    By.XPATH, '//*[@id="all_stats_standard"]/div[1]/div/ul/li[1]')
+    By.XPATH, '//*[@id="all_stats_'+types+'"]/div[1]/div/ul/li[1]')
     elem.click()
-    WebDriverWait(browser, 10).until(EC.element_to_be_clickable((By.XPATH, '//*[@id="all_stats_standard"]/div[1]/div/ul/li[1]/div/ul/li[4]/button'))).click()
-    csv = browser.find_element(By.XPATH, '//*[@id="csv_stats_standard"]')
+    WebDriverWait(browser, 10).until(EC.element_to_be_clickable((By.XPATH, '//*[@id="all_stats_'+types+'"]/div[1]/div/ul/li[1]/div/ul/li[4]/button'))).click()
+    csv = browser.find_element(By.XPATH, '//*[@id="csv_stats_'+types+'"]')
     response = csv.text
     response = response.replace(",", ";")
-    response = response.split("\n",2)[2];
-
+    if types == "shooting":
+       response = response.split("\n",1)[1];
+    else : response = response.split("\n",2)[2];
     browser.close()
     browser.quit()
     return response
