@@ -13,7 +13,7 @@ from pyvirtualdisplay import Display
 app = Flask(__name__)
 
 types = ['stats', 'passing', 'shooting', 'playingtime', 'keepers', 'keepersadv', 'misc']
-competitions = [9, 8, 12, 13, 11, 19, 20] 
+competitions = [9, 12, 8, 13, 11, 19, 20] 
 
 def get_league_by_number(argument): 
     switcher = { 
@@ -44,10 +44,11 @@ def get_data_by_league(numberOfLeague, types):
     link = 'https://fbref.com/en/comps/{}/'+types+'/'+league
     link = link.format(numberOfLeague)
     browser.get(link)
+    if types == 'stats': types = 'standard'
     elem = browser.find_element(
     By.XPATH, '//*[@id="all_stats_'+types+'"]/div[1]/div/ul/li[1]')
     elem.click()
-    WebDriverWait(browser, 10).until(EC.element_to_be_clickable((By.XPATH, '//*[@id="all_stats_'+types+'"]/div[1]/div/ul/li[1]/div/ul/li[4]/button'))).click()
+    WebDriverWaitFor(browser).until(EC.element_to_be_clickable((By.XPATH, '//*[@id="all_stats_'+types+'"]/div[1]/div/ul/li[1]/div/ul/li[4]/button'))).click()
     csv = browser.find_element(By.XPATH, '//*[@id="csv_stats_'+types+'"]')
     response = csv.text
     response = response.replace(",", ";")
@@ -61,22 +62,25 @@ def get_data_by_league(numberOfLeague, types):
 @app.route('/all')
 def get_all_data():
     data = {}
+    chrome_options = Options()
+    chrome_options.headless = True
+    chrome_options.add_argument('--disable-gpu')
+    chrome_options.add_argument("--log-level=3")
+    # chrome_options.add_argument("--headless")
+    # chrome_options.add_argument('--disable-gpu')  # Last I checked this was necessary.
+    browser = webdriver.Chrome('C:\\Users\\mouis\\webDriver\\chromedriver', options=chrome_options)
     for competition in competitions:
+        item = {}
         for typ in types:
-            league = get_league_by_number(competition)
-            chrome_options = Options()
-            chrome_options.headless = True
-            # chrome_options.add_argument("--headless")
-            # chrome_options.add_argument('--disable-gpu')  # Last I checked this was necessary.
-            browser = webdriver.Chrome('C:\\Users\\mouis\\webDriver\\chromedriver', options=chrome_options)
+            league = get_league_by_number(competition)         
             tosh = 'le nombre : {}'
             tosh = tosh.format(competition)
             print(tosh)
-            print('le nombre : '+league)
-            
+            print('le nombre : '+league)           
             link = 'https://fbref.com/en/comps/{}/'+typ+'/'+league
             link = link.format(competition)
             print(link)
+            print('//////////////////////////////////////////////////////////')
             browser.get(link)
             if typ == 'stats': typ = 'standard'
             if typ == 'playingtime': typ = 'playing_time'
@@ -92,11 +96,11 @@ def get_all_data():
             response = response.replace(",", ";")
             if typ == "shooting":
              response = response.split("\n",1)[1]
-            else : response = response.split("\n",2)[2]
-            browser.close()
-            browser.quit()
+            else : response = response.split("\n",2)[2]       
             key = league+'-'+typ 
-            data[key] = response
+            item[typ] = response
+        data[competition] = item    
     return data    
-
+    browser.close()
+    browser.quit()
 app.run(port=5000)
