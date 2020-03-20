@@ -75,18 +75,19 @@ def get_all_data():
             league = get_league_by_number(competition)         
             tosh = 'le nombre : {}'
             tosh = tosh.format(competition)
+            print('________________________________________________')
             print(tosh)
             print('le nombre : '+league)           
             link = 'https://fbref.com/en/comps/{}/'+typ+'/'+league
             link = link.format(competition)
             print(link)
-            print('//////////////////////////////////////////////////////////')
             browser.get(link)
             if typ == 'stats': typ = 'standard'
             if typ == 'playingtime': typ = 'playing_time'
             if typ == 'keepers': typ = 'keeper'
             if typ == 'keepersadv': typ = 'keeper_adv'
             print("le type : "+typ)
+            print('________________________________________________')
             elem = browser.find_element(
             By.XPATH, '//*[@id="all_stats_'+typ+'"]/div[1]/div/ul/li[1]')
             elem.click()
