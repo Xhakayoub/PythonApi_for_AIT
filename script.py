@@ -75,7 +75,6 @@ def get_all_data():
             league = get_league_by_number(competition)         
             tosh = 'le nombre : {}'
             tosh = tosh.format(competition)
-            print('________________________________________________')
             print(tosh)
             print('le nombre : '+league)           
             link = 'https://fbref.com/en/comps/{}/'+typ+'/'+league
