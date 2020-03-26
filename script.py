@@ -115,7 +115,7 @@ def get_all_data():
             responseForSqaud = responseForSqaud.replace(",", ";")
             if typ == "shooting": responseForSqaud = responseForSqaud.split("\n",1)[1]  
             else : responseForSqaud = responseForSqaud.split("\n",2)[2]      
-            item['squad'] = responseForSqaud 
+            item['squad '+typ] = responseForSqaud 
 #Scapping the players's datas
             elem = browser.find_element(
             By.XPATH, '//*[@id="all_stats_'+typ+'"]/div[1]/div/ul/li[1]')
@@ -129,8 +129,7 @@ def get_all_data():
             else : response = response.split("\n",2)[2]       
             key = league+'-'+typ 
             item[typ] = response      
-            data[league] = item 
-        break     
+            data[league] = item      
     return data    
     browser.close()
     browser.quit()
