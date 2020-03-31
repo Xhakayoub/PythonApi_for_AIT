@@ -83,11 +83,14 @@ def get_all_data():
     chrome_options.add_argument("enable-automation")
     chrome_options.add_argument("--disable-infobars")
     chrome_options.add_argument("--no-sandbox")
-    chrome_options.add_argument("--disable-browser-side-navigation")
+    chrome_options.page_load_strategy = 'none'
+  
+    # chrome_options.add_argument("--disable-browser-side-navigation")
     # chrome_options.add_argument("--headless")
     # chrome_options.add_argument('--disable-gpu')  # Last I checked this was necessary.
     browser = webdriver.Chrome('C:\\Users\\mouis\\webDriver\\chromedriver', options=chrome_options)
-    browser.set_page_load_timeout(5)            
+    browser.implicitly_wait(10)
+    # browser.set_page_load_timeout(5)            
     for competition in competitions:
         item = {}
         for typ in types:
@@ -105,31 +108,39 @@ def get_all_data():
             if typ == 'keepers': typ = 'keeper'
             if typ == 'keepersadv': typ = 'keeper_adv'
             print("le type : "+typ)
-#Scapping the squad's datas
-            elem1 = browser.find_element(
-            By.XPATH, '//*[@id="all_stats_'+typ+'_squads"]/div[1]/div/ul/li[1]')
-            elem1.click()
-            WebDriverWait(browser, 10).until(EC.element_to_be_clickable((By.XPATH, '//*[@id="all_stats_'+typ+'_squads"]/div[1]/div/ul/li[1]/div/ul/li[4]/button'))).click()
-            csv = browser.find_element(By.XPATH, '//*[@id="csv_stats_'+typ+'_squads"]')
-            responseForSqaud = csv.text
-            responseForSqaud = responseForSqaud.replace(",", ";")
-            if typ == "shooting": responseForSqaud = responseForSqaud.split("\n",1)[1]  
-            else : responseForSqaud = responseForSqaud.split("\n",2)[2]      
-            item['squad '+typ] = responseForSqaud 
+#Scapping the squad's datas       
+            try:
+                elem1 = WebDriverWait(browser, 30, poll_frequency=4).until(
+                EC.presence_of_element_located((By.XPATH, '//*[@id="all_stats_'+typ+'_squads"]/div[1]/div/ul/li[1]'))
+                )
+            finally:
+                elem1.click()
+                WebDriverWait(browser, 60, poll_frequency=4).until(EC.element_to_be_clickable((By.XPATH, '//*[@id="all_stats_'+typ+'_squads"]/div[1]/div/ul/li[1]/div/ul/li[4]/button'))).click()
+                csv = browser.find_element(By.XPATH, '//*[@id="csv_stats_'+typ+'_squads"]')
+                responseForSqaud = csv.text
+                responseForSqaud = responseForSqaud.replace(",", ";")
+                if typ == "shooting": responseForSqaud = responseForSqaud.split("\n",1)[1]  
+                else : responseForSqaud = responseForSqaud.split("\n",2)[2]      
+                item['squad '+typ] = responseForSqaud 
 #Scapping the players's datas
-            elem = browser.find_element(
-            By.XPATH, '//*[@id="all_stats_'+typ+'"]/div[1]/div/ul/li[1]')
-            elem.click()
-            WebDriverWait(browser, 10).until(EC.element_to_be_clickable((By.XPATH, '//*[@id="all_stats_'+typ+'"]/div[1]/div/ul/li[1]/div/ul/li[4]/button'))).click()
-            csv = browser.find_element(By.XPATH, '//*[@id="csv_stats_'+typ+'"]')
-            print('________________________________________________')
-            response = csv.text
-            response = response.replace(",", ";")
-            if typ == "shooting":  response = response.split("\n",1)[1]          
-            else : response = response.split("\n",2)[2]       
-            key = league+'-'+typ 
-            item[typ] = response      
-            data[league] = item      
+            try:
+                elem = WebDriverWait(browser, 30, poll_frequency=4).until(
+                EC.presence_of_element_located((By.XPATH, '//*[@id="all_stats_'+typ+'"]/div[1]/div/ul/li[1]'))
+                )
+            finally:
+                elem.click()
+                WebDriverWait(browser, 60, poll_frequency=4).until(EC.element_to_be_clickable((By.XPATH, '//*[@id="all_stats_'+typ+'"]/div[1]/div/ul/li[1]/div/ul/li[4]/button'))).click()
+                csv = browser.find_element(By.XPATH, '//*[@id="csv_stats_'+typ+'"]')
+                print('________________________________________________')
+                response = csv.text
+                response = response.replace(",", ";")
+                if typ == "shooting":  response = response.split("\n",1)[1]          
+                else : response = response.split("\n",2)[2]       
+                key = league+'-'+typ 
+                item[typ] = response      
+            data[league] = item    
+        return data
+        break  
     return data    
     browser.close()
     browser.quit()
