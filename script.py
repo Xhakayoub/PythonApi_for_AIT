@@ -12,7 +12,7 @@ from pyvirtualdisplay import Display
 
 app = Flask(__name__)
 
-types = ['keepers', 'stats', 'passing', 'shooting', 'playingtime', 'keepersadv', 'misc']
+types = ['keepers', 'stats', 'passing', 'shooting', 'playingtime', 'keepersadv', 'misc', 'passing_types']
 competitions = [9, 12, 8, 13, 11, 19, 20] 
 
 def get_league_by_number(argument): 
@@ -65,7 +65,7 @@ def get_data_by_league(numberOfLeague, types):
     csv = browser.find_element(By.XPATH, '//*[@id="csv_stats_'+types+'"]')
     response = csv.text
     response = response.replace(",", ";")
-    if types == "shooting":
+    if types == "shooting" or types == "passsing_types":
        response = response.split("\n",1)[1];
     else : response = response.split("\n",2)[2];
     browser.close()
@@ -122,7 +122,7 @@ def get_all_data():
                     csv = browser.find_element(By.XPATH, '//*[@id="csv_stats_'+typ+'_squads"]')
                     responseForSqaud = csv.text
                     responseForSqaud = responseForSqaud.replace(",", ";")
-                    if typ == "shooting": responseForSqaud = responseForSqaud.split("\n",1)[1]  
+                    if typ == "shooting" or types == "passsing_types": responseForSqaud = responseForSqaud.split("\n",1)[1]  
                     else : responseForSqaud = responseForSqaud.split("\n",2)[2]      
                     item['squad '+typ] = responseForSqaud 
 #Scapping the players's datas
@@ -140,7 +140,7 @@ def get_all_data():
                     print('________________________________________________')
                     response = csv.text
                     response = response.replace(",", ";")
-                    if typ == "shooting":  response = response.split("\n",1)[1]          
+                    if typ == "shooting" or types == "passsing_types":  response = response.split("\n",1)[1]          
                     else : response = response.split("\n",2)[2]       
                     key = league+'-'+typ 
                     item[typ] = response      
