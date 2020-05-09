@@ -110,43 +110,48 @@ def get_all_data():
             print("le type : "+typ)
 #Scapping the squad's datas       
             try:
-                elem1 = WebDriverWait(browser, 300, poll_frequency=10).until(
+                elem1 = WebDriverWait(browser, 100, poll_frequency=10).until(
                 EC.presence_of_element_located((By.XPATH, '//*[@id="all_stats_'+typ+'_squads"]/div[1]/div/ul/li[1]'))
                 )
             finally:
                 elem1.click()
                 try:
-                    getCsvButton1 = WebDriverWait(browser, 300, poll_frequency=10).until(EC.element_to_be_clickable((By.XPATH, '//*[@id="all_stats_'+typ+'_squads"]/div[1]/div/ul/li[1]/div/ul/li[4]/button')))
+                    getCsvButton1 = WebDriverWait(browser, 100, poll_frequency=10).until(EC.element_to_be_clickable((By.XPATH, '//*[@id="all_stats_'+typ+'_squads"]/div[1]/div/ul/li[1]/div/ul/li[4]/button')))
                     getCsvButton1.click()
+                except: 
+                    print('Network Probleme')    
                 finally:    
+                    # element = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "myDynamicElement")))
+                    element1 = WebDriverWait(browser, 5).until(EC.presence_of_element_located((By.XPATH, '//*[@id="csv_stats_'+typ+'_squads"]')))
                     csv = browser.find_element(By.XPATH, '//*[@id="csv_stats_'+typ+'_squads"]')
                     responseForSqaud = csv.text
                     responseForSqaud = responseForSqaud.replace(",", ";")
-                    if typ == "shooting" or typ == "passsing_types" or typ == "defense" or typ == "possession": responseForSqaud = responseForSqaud.split("\n",1)[1]  
+                    if typ == "shooting" or typ == "passsing_types": responseForSqaud = responseForSqaud.split("\n",1)[1]  
                     else : responseForSqaud = responseForSqaud.split("\n",2)[2]      
                     item['squad '+typ] = responseForSqaud 
 #Scapping the players's datas
             try:
-                elem = WebDriverWait(browser, 300, poll_frequency=10).until(
+                elem = WebDriverWait(browser, 100, poll_frequency=10).until(
                 EC.presence_of_element_located((By.XPATH, '//*[@id="all_stats_'+typ+'"]/div[1]/div/ul/li[1]'))
                 )
             finally:
                 elem.click()
                 try:
-                    getCsvButton = WebDriverWait(browser, 300, poll_frequency=10).until(EC.element_to_be_clickable((By.XPATH, '//*[@id="all_stats_'+typ+'"]/div[1]/div/ul/li[1]/div/ul/li[4]/button')))
+                    getCsvButton = WebDriverWait(browser, 100, poll_frequency=10).until(EC.element_to_be_clickable((By.XPATH, '//*[@id="all_stats_'+typ+'"]/div[1]/div/ul/li[1]/div/ul/li[4]/button')))
                     getCsvButton.click()
+                except: 
+                    print('Network Probleme')
                 finally:    
+                    element = WebDriverWait(browser, 5).until(EC.presence_of_element_located((By.XPATH, '//*[@id="csv_stats_'+typ+'"]')))
                     csv = browser.find_element(By.XPATH, '//*[@id="csv_stats_'+typ+'"]')
                     print('________________________________________________')
                     response = csv.text
                     response = response.replace(",", ";")
-                    if typ == "shooting" or typ == "passsing_types" or typ == "defense" or typ == "possession":  response = response.split("\n",1)[1]          
+                    if typ == "shooting" or typ == "passsing_types":  response = response.split("\n",1)[1]          
                     else : response = response.split("\n",2)[2]       
                     key = league+'-'+typ 
                     item[typ] = response      
             data[league] = item    
-        return data
-        break  
     return data    
     browser.close()
     browser.quit()
