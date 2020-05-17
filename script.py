@@ -8,6 +8,10 @@ import requests
 from selenium.webdriver.chrome.options import Options
 from flask import Flask
 from pyvirtualdisplay import Display
+from selenium.common.exceptions import TimeoutException
+import testConnection
+import time
+
 
 
 app = Flask(__name__)
@@ -89,7 +93,6 @@ def get_all_data():
     # chrome_options.add_argument("--headless")
     # chrome_options.add_argument('--disable-gpu')  # Last I checked this was necessary.
     browser = webdriver.Chrome('C:\\Users\\mouis\\webDriver\\chromedriver', options=chrome_options)
-    browser.implicitly_wait(10)
     # browser.set_page_load_timeout(5)            
     for competition in competitions:
         item = {}
@@ -108,7 +111,11 @@ def get_all_data():
             if typ == 'keepers': typ = 'keeper'
             if typ == 'keepersadv': typ = 'keeper_adv'
             print("le type : "+typ)
-#Scapping the squad's datas       
+#Scrapping the squad's datas 
+            print(testConnection.test_connection()) 
+            while testConnection.test_connection() == False :
+                print('Waiting for internet ....')
+                time.sleep(5)
             try:
                 elem1 = WebDriverWait(browser, 100, poll_frequency=10).until(
                 EC.presence_of_element_located((By.XPATH, '//*[@id="all_stats_'+typ+'_squads"]/div[1]/div/ul/li[1]'))
@@ -116,20 +123,33 @@ def get_all_data():
             finally:
                 elem1.click()
                 try:
-                    getCsvButton1 = WebDriverWait(browser, 100, poll_frequency=10).until(EC.element_to_be_clickable((By.XPATH, '//*[@id="all_stats_'+typ+'_squads"]/div[1]/div/ul/li[1]/div/ul/li[4]/button')))
-                    getCsvButton1.click()
-                except: 
-                    print('Network Probleme')    
-                finally:    
-                    # element = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "myDynamicElement")))
-                    element1 = WebDriverWait(browser, 5).until(EC.presence_of_element_located((By.XPATH, '//*[@id="csv_stats_'+typ+'_squads"]')))
+                    getCsvButton1 = WebDriverWait(browser, 10, poll_frequency=2).until(
+                        EC.presence_of_element_located((By.XPATH, 
+                        '//*[@id="all_stats_'+typ+'_squads"]/div[1]/div/ul/li[1]/div/ul/li[4]/button')))
+                    print('located')
+                    getCsvButton1 = WebDriverWait(browser, 100, poll_frequency=10).until(
+                        EC.element_to_be_clickable((By.XPATH,
+                        '//*[@id="all_stats_'+typ+'_squads"]/div[1]/div/ul/li[1]/div/ul/li[4]/button')))
+                except TimeoutException : 
+                    print("Loading took too much time!")    
+                finally:
+                    browser.execute_script("arguments[0].click();", getCsvButton1)     
+                    # getCsvButton1.click()
+                    print('clicked')
+                    element1 = WebDriverWait(browser, 10, poll_frequency=2).until(
+                        EC.presence_of_element_located((By.XPATH, '//*[@id="csv_stats_'+typ+'_squads"]')))
                     csv = browser.find_element(By.XPATH, '//*[@id="csv_stats_'+typ+'_squads"]')
                     responseForSqaud = csv.text
                     responseForSqaud = responseForSqaud.replace(",", ";")
                     if typ == "shooting" or typ == "passsing_types": responseForSqaud = responseForSqaud.split("\n",1)[1]  
                     else : responseForSqaud = responseForSqaud.split("\n",2)[2]      
                     item['squad '+typ] = responseForSqaud 
+                    
 #Scapping the players's datas
+            print(testConnection.test_connection()) 
+            while testConnection.test_connection() == False :
+                print('Waiting for internet ....')
+                time.sleep(5)
             try:
                 elem = WebDriverWait(browser, 100, poll_frequency=10).until(
                 EC.presence_of_element_located((By.XPATH, '//*[@id="all_stats_'+typ+'"]/div[1]/div/ul/li[1]'))
@@ -137,12 +157,21 @@ def get_all_data():
             finally:
                 elem.click()
                 try:
-                    getCsvButton = WebDriverWait(browser, 100, poll_frequency=10).until(EC.element_to_be_clickable((By.XPATH, '//*[@id="all_stats_'+typ+'"]/div[1]/div/ul/li[1]/div/ul/li[4]/button')))
-                    getCsvButton.click()
-                except: 
-                    print('Network Probleme')
-                finally:    
-                    element = WebDriverWait(browser, 5).until(EC.presence_of_element_located((By.XPATH, '//*[@id="csv_stats_'+typ+'"]')))
+                    getCsvButton = WebDriverWait(browser, 10, poll_frequency=2).until(
+                        EC.presence_of_element_located((By.XPATH,
+                            '//*[@id="all_stats_'+typ+'"]/div[1]/div/ul/li[1]/div/ul/li[4]/button')))
+                    print('located')
+                    getCsvButton = WebDriverWait(browser, 100, poll_frequency=10).until(
+                        EC.element_to_be_clickable((By.XPATH, 
+                        '//*[@id="all_stats_'+typ+'"]/div[1]/div/ul/li[1]/div/ul/li[4]/button')))  
+                except TimeoutException : 
+                    print("Loading took too much time!")
+                finally:   
+                    browser.execute_script("arguments[0].click();", getCsvButton) 
+                    # getCsvButton.click()
+                    print('clicked')
+                    element = WebDriverWait(browser, 10, poll_frequency=2).until(
+                        EC.presence_of_element_located((By.XPATH, '//*[@id="csv_stats_'+typ+'"]')))
                     csv = browser.find_element(By.XPATH, '//*[@id="csv_stats_'+typ+'"]')
                     print('________________________________________________')
                     response = csv.text
@@ -151,6 +180,7 @@ def get_all_data():
                     else : response = response.split("\n",2)[2]       
                     key = league+'-'+typ 
                     item[typ] = response      
+            # else : print('No internet') 
             data[league] = item    
     return data    
     browser.close()
