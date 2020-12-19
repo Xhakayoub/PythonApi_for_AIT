@@ -6,6 +6,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import requests
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.action_chains import ActionChains
 from flask import Flask
 from pyvirtualdisplay import Display
 from selenium.common.exceptions import TimeoutException
@@ -17,7 +18,7 @@ import time
 app = Flask(__name__)
 
 types = ['keepers', 'stats', 'passing', 'shooting', 'playingtime', 'keepersadv', 'misc', 'passing_types', 'defense', 'possession']
-competitions = [9, 12, 8, 13, 11, 19, 20] 
+competitions = [13] 
 
 def get_league_by_number(argument): 
     switcher = { 
@@ -46,7 +47,7 @@ def get_data_by_league(numberOfLeague, types):
     chrome_options.add_argument("--log-level=3")
     # chrome_options.add_argument("--headless")
     # chrome_options.add_argument('--disable-gpu')  # Last I checked this was necessary.
-    browser = webdriver.Chrome('C:\\Users\\mouis\\webDriver\\chromedriver', options=chrome_options)
+    browser = webdriver.Chrome('C:\\Users\\amouissi\\Desktop\\AiTransfert\\chromedriver', options=chrome_options)
     link = 'https://fbref.com/en/comps/{}/'+types+'/'+league
     link = link.format(numberOfLeague)
     browser.get(link)
@@ -78,7 +79,9 @@ def get_data_by_league(numberOfLeague, types):
 
 @app.route('/all')
 def get_all_data():
+
     data = {}
+
     chrome_options = Options()
     chrome_options.headless = True
     chrome_options.add_argument('--disable-gpu')
@@ -88,18 +91,25 @@ def get_all_data():
     chrome_options.add_argument("--disable-infobars")
     chrome_options.add_argument("--no-sandbox")
     chrome_options.page_load_strategy = 'none'
-  
+
     # chrome_options.add_argument("--disable-browser-side-navigation")
     # chrome_options.add_argument("--headless")
     # chrome_options.add_argument('--disable-gpu')  # Last I checked this was necessary.
-    browser = webdriver.Chrome('C:\\Users\\mouis\\webDriver\\chromedriver', options=chrome_options)
-    # browser.set_page_load_timeout(5)            
+    browser = webdriver.Chrome('C:\\Users\\amouissi\\Desktop\\AiTransfert\\chromedriver', options=chrome_options)
+    # browser.set_page_load_timeout(5)    
+    browser.set_window_size(3840, 2160)
+        
     for competition in competitions:
         item = {}
         for typ in types:
-            league = get_league_by_number(competition)         
+            league = get_league_by_number(competition)  
             tosh = "l'identifiant' : {}"
             tosh = tosh.format(competition)
+            liPosition = '2'
+            secondLiPosition = '1'
+            if league == 'Champions-League-Stats' or league == 'Europa-League-Stats' :      
+                liPosition = '3'
+                secondLiPosition = '2'
             print(tosh)
             print('la competition : '+league)           
             link = 'https://fbref.com/en/comps/{}/'+typ+'/'+league
@@ -108,7 +118,13 @@ def get_all_data():
             browser.get(link)
             if typ == 'stats': typ = 'standard'
             if typ == 'playingtime': typ = 'playing_time'
-            if typ == 'keepers': typ = 'keeper'
+            if typ == 'keepers': 
+                typ = 'keeper' 
+                liPosition = '3'
+                secondLiPosition = '2'
+                if league == 'Champions-League-Stats' or league == 'Europa-League-Stats' :
+                     liPosition = '4'
+                     secondLiPosition = '3'               
             if typ == 'keepersadv': typ = 'keeper_adv'
             print("le type : "+typ)
 #Scrapping the squad's datas 
@@ -118,18 +134,18 @@ def get_all_data():
                 time.sleep(5)
             try:
                 elem1 = WebDriverWait(browser, 100, poll_frequency=10).until(
-                EC.presence_of_element_located((By.XPATH, '//*[@id="all_stats_'+typ+'_squads"]/div[1]/div/ul/li[1]'))
+                EC.presence_of_element_located((By.XPATH, '//*[@id="all_stats_'+typ+'_squads"]/div[1]/div/ul/li['+liPosition+']/span'))
                 )
             finally:
-                elem1.click()
+                ActionChains(browser).move_to_element(elem1).perform()
                 try:
                     getCsvButton1 = WebDriverWait(browser, 10, poll_frequency=2).until(
                         EC.presence_of_element_located((By.XPATH, 
-                        '//*[@id="all_stats_'+typ+'_squads"]/div[1]/div/ul/li[1]/div/ul/li[4]/button')))
+                        '//*[@id="all_stats_'+typ+'_squads"]/div[1]/div/ul/li['+liPosition+']/div/ul/li[4]/button')))
                     print('located')
-                    getCsvButton1 = WebDriverWait(browser, 100, poll_frequency=10).until(
+                    getCsvButton1 = WebDriverWait(browser, 10, poll_frequency=2).until(
                         EC.element_to_be_clickable((By.XPATH,
-                        '//*[@id="all_stats_'+typ+'_squads"]/div[1]/div/ul/li[1]/div/ul/li[4]/button')))
+                        '//*[@id="all_stats_'+typ+'_squads"]/div[1]/div/ul/li['+liPosition+']/div/ul/li[4]/button')))
                 except TimeoutException : 
                     print("Loading took too much time!")    
                 finally:
@@ -152,18 +168,18 @@ def get_all_data():
                 time.sleep(5)
             try:
                 elem = WebDriverWait(browser, 100, poll_frequency=10).until(
-                EC.presence_of_element_located((By.XPATH, '//*[@id="all_stats_'+typ+'"]/div[1]/div/ul/li[1]'))
+                EC.presence_of_element_located((By.XPATH, '//*[@id="all_stats_'+typ+'"]/div[1]/div/ul/li['+secondLiPosition+']/span'))
                 )
             finally:
-                elem.click()
+                ActionChains(browser).move_to_element(elem).perform()
                 try:
                     getCsvButton = WebDriverWait(browser, 10, poll_frequency=2).until(
                         EC.presence_of_element_located((By.XPATH,
-                            '//*[@id="all_stats_'+typ+'"]/div[1]/div/ul/li[1]/div/ul/li[4]/button')))
+                            '//*[@id="all_stats_'+typ+'"]/div[1]/div/ul/li['+secondLiPosition+']/div/ul/li[4]/button')))
                     print('located')
-                    getCsvButton = WebDriverWait(browser, 100, poll_frequency=10).until(
+                    getCsvButton = WebDriverWait(browser, 10, poll_frequency=2).until(
                         EC.element_to_be_clickable((By.XPATH, 
-                        '//*[@id="all_stats_'+typ+'"]/div[1]/div/ul/li[1]/div/ul/li[4]/button')))  
+                        '//*[@id="all_stats_'+typ+'"]/div[1]/div/ul/li['+secondLiPosition+']/div/ul/li[4]/button')))  
                 except TimeoutException : 
                     print("Loading took too much time!")
                 finally:   
