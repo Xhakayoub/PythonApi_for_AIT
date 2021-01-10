@@ -18,7 +18,8 @@ import time
 app = Flask(__name__)
 
 types = ['keepers', 'stats', 'passing', 'shooting', 'playingtime', 'keepersadv', 'misc', 'passing_types', 'defense', 'possession']
-competitions = [13] 
+competitions = [19] 
+checkKeeper = ['keeper', 'keeper_adv']
 
 def get_league_by_number(argument): 
     switcher = { 
@@ -107,6 +108,7 @@ def get_all_data():
             tosh = tosh.format(competition)
             liPosition = '2'
             secondLiPosition = '1'
+            divPosition = '1'
             if league == 'Champions-League-Stats' or league == 'Europa-League-Stats' :      
                 liPosition = '3'
                 secondLiPosition = '2'
@@ -167,19 +169,27 @@ def get_all_data():
                 print('Waiting for internet ....')
                 time.sleep(5)
             try:
+                if competition == 19 and typ not in checkKeeper : 
+                        secondLiPosition = '2'
+                        divPosition = '2'
+                        collpaseButton =  WebDriverWait(browser, 10, poll_frequency=2).until(
+                        EC.element_to_be_clickable((By.XPATH,
+                        '//*[@id="stats_'+typ+'_control"]')))
+                        browser.execute_script("arguments[0].click();", collpaseButton)  
+                        print('Collapse Button Clicked')   
                 elem = WebDriverWait(browser, 100, poll_frequency=10).until(
-                EC.presence_of_element_located((By.XPATH, '//*[@id="all_stats_'+typ+'"]/div[1]/div/ul/li['+secondLiPosition+']/span'))
+                EC.presence_of_element_located((By.XPATH, '//*[@id="all_stats_'+typ+'"]/div['+divPosition+']/div/ul/li['+secondLiPosition+']/span'))
                 )
             finally:
                 ActionChains(browser).move_to_element(elem).perform()
                 try:
                     getCsvButton = WebDriverWait(browser, 10, poll_frequency=2).until(
                         EC.presence_of_element_located((By.XPATH,
-                            '//*[@id="all_stats_'+typ+'"]/div[1]/div/ul/li['+secondLiPosition+']/div/ul/li[4]/button')))
+                            '//*[@id="all_stats_'+typ+'"]/div['+divPosition+']/div/ul/li['+secondLiPosition+']/div/ul/li[4]/button')))
                     print('located')
                     getCsvButton = WebDriverWait(browser, 10, poll_frequency=2).until(
                         EC.element_to_be_clickable((By.XPATH, 
-                        '//*[@id="all_stats_'+typ+'"]/div[1]/div/ul/li['+secondLiPosition+']/div/ul/li[4]/button')))  
+                        '//*[@id="all_stats_'+typ+'"]/div['+divPosition+']/div/ul/li['+secondLiPosition+']/div/ul/li[4]/button')))  
                 except TimeoutException : 
                     print("Loading took too much time!")
                 finally:   
