@@ -48,7 +48,7 @@ def get_data_by_league(numberOfLeague, types):
     chrome_options.add_argument("--log-level=3")
     # chrome_options.add_argument("--headless")
     # chrome_options.add_argument('--disable-gpu')  # Last I checked this was necessary.
-    browser = webdriver.Chrome('C:\\Users\\amouissi\\Desktop\\AiTransfert\\chromedriver', options=chrome_options)
+    browser = webdriver.Chrome('C:\\wamp64\\www\\chromedriver', options=chrome_options)
     link = 'https://fbref.com/en/comps/{}/'+types+'/'+league
     link = link.format(numberOfLeague)
     browser.get(link)
@@ -96,7 +96,7 @@ def get_all_data():
     # chrome_options.add_argument("--disable-browser-side-navigation")
     # chrome_options.add_argument("--headless")
     # chrome_options.add_argument('--disable-gpu')  # Last I checked this was necessary.
-    browser = webdriver.Chrome('C:\\Users\\amouissi\\Desktop\\AiTransfert\\chromedriver', options=chrome_options)
+    browser = webdriver.Chrome('C:\\wamp64\\www\\chromedriver', options=chrome_options)
     # browser.set_page_load_timeout(5)    
     browser.set_window_size(3840, 2160)
         
