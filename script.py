@@ -17,8 +17,8 @@ import time
 
 app = Flask(__name__)
 
-types = ['keepers', 'stats', 'passing', 'shooting', 'playingtime', 'keepersadv', 'misc', 'passing_types', 'defense', 'possession']
-competitions = [19] 
+types = ['keepers']#, 'stats', 'passing', 'shooting', 'playingtime', 'keepersadv', 'misc', 'passing_types', 'defense', 'possession']
+competitions = [19]#, 13, 8, 9, 12, 20, 11] 
 checkKeeper = ['keeper', 'keeper_adv']
 
 def get_league_by_number(argument): 
@@ -202,8 +202,8 @@ def get_all_data():
                     print('________________________________________________')
                     response = csv.text
                     response = response.replace(",", ";")
-                    if typ == "shooting" or typ == "passsing_types":  response = response.split("\n",1)[1]          
-                    else : response = response.split("\n",2)[2]       
+                    if typ == "shooting" or typ == "passsing_types":  response = response.split("\n",5)[5]          
+                    else : response = response.split("\n",6)[6]       
                     key = league+'-'+typ 
                     item[typ] = response      
             # else : print('No internet') 
