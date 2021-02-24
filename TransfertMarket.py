@@ -23,7 +23,7 @@ app = Flask(__name__)
 def get_player_data(player, age, club):
 
     data = {}
-
+    player = player.replace('-', ' ') 
     chrome_options = Options()
     #chrome_options.headless = True
     chrome_options.add_argument('--disable-gpu')
