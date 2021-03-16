@@ -25,7 +25,7 @@ def get_player_data(player, age, club):
     data = {}
     player = player.replace('-', ' ') 
     chrome_options = Options()
-    #chrome_options.headless = True
+    chrome_options.headless = True
     chrome_options.add_argument('--disable-gpu')
     chrome_options.add_argument("--log-level=3")
     chrome_options.add_argument("--start-maximized")

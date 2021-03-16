@@ -13,14 +13,22 @@ from selenium.common.exceptions import TimeoutException
 import testConnection
 import time
 
-
-
 app = Flask(__name__)
-
-types = ['keepers']#, 'stats', 'passing', 'shooting', 'playingtime', 'keepersadv', 'misc', 'passing_types', 'defense', 'possession']
-competitions = [19]#, 13, 8, 9, 12, 20, 11] 
+linkControlls = {
+    "keeper" : { "liPosition" : '3', "secondLiPosition" : '3', "divPosition" : '1', "secondDivPosition" : '1'},
+    "keeper_adv" : { "liPosition" : '2', "secondLiPosition" : '2', "divPosition" : '1', "secondDivPosition" : '1'},
+    "standard" : { "liPosition" : '2', "secondLiPosition" : '2', "divPosition" : '2', "secondDivPosition" : '1'},
+    "passing" : { "liPosition" : '2', "secondLiPosition" : '2', "divPosition" : '2', "secondDivPosition" : '1'},
+    "shooting" : { "liPosition" : '2', "secondLiPosition" : '2', "divPosition" : '2', "secondDivPosition" : '1'},
+    "playing_time" : { "liPosition" : '2', "secondLiPosition" : '2', "divPosition" : '2', "secondDivPosition" : '1'},
+    "misc" : { "liPosition" : '2', "secondLiPosition" : '2', "divPosition" : '2', "secondDivPosition" : '1'},
+    "passing_types" : { "liPosition" : '2', "secondLiPosition" : '2', "divPosition" : '2', "secondDivPosition" : '1'},
+    "defense" : { "liPosition" : '2', "secondLiPosition" : '2', "divPosition" : '2', "secondDivPosition" : '1'},
+    "possession" : { "liPosition" : '2', "secondLiPosition" : '2', "divPosition" : '2', "secondDivPosition" : '2'}
+}
+types = ['possession']#'keepers', 'stats', 'passing', 'shooting', 'playingtime', 'keepersadv', 'misc', 'passing_types', 'defense',
+competitions = [19, 13, 8, 9, 12, 20, 11] 
 checkKeeper = ['keeper', 'keeper_adv']
-
 def get_league_by_number(argument): 
     switcher = { 
         13: "Ligue-1-Stats", 
@@ -39,44 +47,6 @@ def get_league_by_number(argument):
     return switcher.get(argument) 
 
 
-@app.route('/<int:numberOfLeague>/<string:types>')
-def get_data_by_league(numberOfLeague, types):
-    league = get_league_by_number(numberOfLeague)
-    chrome_options = Options()
-    chrome_options.headless = True
-    chrome_options.add_argument('--disable-gpu')
-    chrome_options.add_argument("--log-level=3")
-    # chrome_options.add_argument("--headless")
-    # chrome_options.add_argument('--disable-gpu')  # Last I checked this was necessary.
-    browser = webdriver.Chrome('C:\\wamp64\\www\\chromedriver', options=chrome_options)
-    link = 'https://fbref.com/en/comps/{}/'+types+'/'+league
-    link = link.format(numberOfLeague)
-    browser.get(link)
-    if types == 'stats': types = 'standard'
-    if types == 'keepers': types = 'keeper'
-    elem1 = browser.find_element(
-    By.XPATH, '//*[@id="all_stats_'+types+'_squads"]/div[1]/div/ul/li[1]')
-    elem1.click()
-    WebDriverWait(browser, 10).until(EC.element_to_be_clickable((By.XPATH, '//*[@id="all_stats_'+types+'_squads"]/div[1]/div/ul/li[1]/div/ul/li[4]/button'))).click()
-    csv1 = browser.find_element(By.XPATH, '//*[@id="csv_stats_'+types+'_squads"]')
-    response1 = csv1.text
-    response1 = response1.replace(",", ";")
-    if types == "shooting":
-       response1 = response1.split("\n",1)[1];
-    else : response1 = response1.split("\n",2)[2];
-    elem = browser.find_element(
-    By.XPATH, '//*[@id="all_stats_'+types+'"]/div[1]/div/ul/li[1]')
-    elem.click()
-    WebDriverWait(browser, 10).until(EC.element_to_be_clickable((By.XPATH, '//*[@id="all_stats_'+types+'"]/div[1]/div/ul/li[1]/div/ul/li[4]/button'))).click()
-    csv = browser.find_element(By.XPATH, '//*[@id="csv_stats_'+types+'"]')
-    response = csv.text
-    response = response.replace(",", ";")
-    if types == "shooting" or types == "passsing_types":
-       response = response.split("\n",1)[1];
-    else : response = response.split("\n",2)[2];
-    browser.close()
-    browser.quit()
-    return response1
 
 @app.route('/all')
 def get_all_data():
@@ -123,8 +93,8 @@ def get_all_data():
             if typ == 'keepers': 
                 typ = 'keeper' 
                 liPosition = '3'
-                secondLiPosition = '2'
-                if league == 'Champions-League-Stats' or league == 'Europa-League-Stats' :
+                secondLiPosition = '3'
+                if league == 'Champions-League-Stats'  :
                      liPosition = '4'
                      secondLiPosition = '3'               
             if typ == 'keepersadv': typ = 'keeper_adv'
@@ -135,28 +105,32 @@ def get_all_data():
                 print('Waiting for internet ....')
                 time.sleep(5)
             try:
+                xpath = '//*[@id="all_stats_squads_'+typ+'"]/div[1]/div/ul/li['+linkControlls[typ]['liPosition']+']/span'
+                print(xpath)
                 elem1 = WebDriverWait(browser, 100, poll_frequency=10).until(
-                EC.presence_of_element_located((By.XPATH, '//*[@id="all_stats_'+typ+'_squads"]/div[1]/div/ul/li['+liPosition+']/span'))
+                EC.presence_of_element_located((By.XPATH, '//*[@id="all_stats_squads_'+typ+'"]/div[1]/div/ul/li['+linkControlls[typ]['liPosition']+']/span'))
                 )
-            finally:
                 ActionChains(browser).move_to_element(elem1).perform()
+            finally:
                 try:
-                    getCsvButton1 = WebDriverWait(browser, 10, poll_frequency=2).until(
+                    #//*[@id="all_stats_squads_keeper"]/div[1]/div/ul/li[3]/div/ul/li[4]/button
+                    print('//*[@id="all_stats_squads_'+typ+'"]/div[1]/div/ul/li['+linkControlls[typ]['liPosition']+']/div/ul/li[4]/button')
+                    getCsvButton1 = WebDriverWait(browser, 100, poll_frequency=10).until(
                         EC.presence_of_element_located((By.XPATH, 
-                        '//*[@id="all_stats_'+typ+'_squads"]/div[1]/div/ul/li['+liPosition+']/div/ul/li[4]/button')))
+                        '//*[@id="all_stats_squads_'+typ+'"]/div[1]/div/ul/li['+linkControlls[typ]['liPosition']+']/div/ul/li[4]/button')))
                     print('located')
-                    getCsvButton1 = WebDriverWait(browser, 10, poll_frequency=2).until(
+                    getCsvButton1 = WebDriverWait(browser, 100, poll_frequency=10).until(
                         EC.element_to_be_clickable((By.XPATH,
-                        '//*[@id="all_stats_'+typ+'_squads"]/div[1]/div/ul/li['+liPosition+']/div/ul/li[4]/button')))
+                        '//*[@id="all_stats_squads_'+typ+'"]/div[1]/div/ul/li['+linkControlls[typ]['liPosition']+']/div/ul/li[4]/button')))
                 except TimeoutException : 
                     print("Loading took too much time!")    
                 finally:
                     browser.execute_script("arguments[0].click();", getCsvButton1)     
                     # getCsvButton1.click()
-                    print('clicked')
+                    print('clicked')#//*[@id="csv_stats_squads_keeper_for"]/text()[2]
                     element1 = WebDriverWait(browser, 10, poll_frequency=2).until(
-                        EC.presence_of_element_located((By.XPATH, '//*[@id="csv_stats_'+typ+'_squads"]')))
-                    csv = browser.find_element(By.XPATH, '//*[@id="csv_stats_'+typ+'_squads"]')
+                        EC.presence_of_element_located((By.XPATH, '//*[@id="csv_stats_squads_'+typ+'_for"]')))
+                    csv = browser.find_element(By.XPATH, '//*[@id="csv_stats_squads_'+typ+'_for"]')
                     responseForSqaud = csv.text
                     responseForSqaud = responseForSqaud.replace(",", ";")
                     if typ == "shooting" or typ == "passsing_types": responseForSqaud = responseForSqaud.split("\n",1)[1]  
@@ -172,24 +146,26 @@ def get_all_data():
                 if competition == 19 and typ not in checkKeeper : 
                         secondLiPosition = '2'
                         divPosition = '2'
+                        #//*[@id="all_stats_keeper"]/div[1]/div/ul/li[3]/span
                         collpaseButton =  WebDriverWait(browser, 10, poll_frequency=2).until(
                         EC.element_to_be_clickable((By.XPATH,
                         '//*[@id="stats_'+typ+'_control"]')))
                         browser.execute_script("arguments[0].click();", collpaseButton)  
                         print('Collapse Button Clicked')   
+                print('//*[@id="all_stats_'+typ+'"]/div['+linkControlls[typ]['secondDivPosition']+']/div/ul/li['+linkControlls[typ]['secondLiPosition']+']/span')
                 elem = WebDriverWait(browser, 100, poll_frequency=10).until(
-                EC.presence_of_element_located((By.XPATH, '//*[@id="all_stats_'+typ+'"]/div['+divPosition+']/div/ul/li['+secondLiPosition+']/span'))
+                EC.presence_of_element_located((By.XPATH, '//*[@id="all_stats_'+typ+'"]/div['+linkControlls[typ]['secondDivPosition']+']/div/ul/li['+linkControlls[typ]['secondLiPosition']+']/span'))
                 )
-            finally:
+            finally:   
                 ActionChains(browser).move_to_element(elem).perform()
                 try:
                     getCsvButton = WebDriverWait(browser, 10, poll_frequency=2).until(
                         EC.presence_of_element_located((By.XPATH,
-                            '//*[@id="all_stats_'+typ+'"]/div['+divPosition+']/div/ul/li['+secondLiPosition+']/div/ul/li[4]/button')))
+                            '//*[@id="all_stats_'+typ+'"]/div['+linkControlls[typ]['secondDivPosition']+']/div/ul/li['+linkControlls[typ]['secondLiPosition']+']/div/ul/li[4]/button')))
                     print('located')
                     getCsvButton = WebDriverWait(browser, 10, poll_frequency=2).until(
                         EC.element_to_be_clickable((By.XPATH, 
-                        '//*[@id="all_stats_'+typ+'"]/div['+divPosition+']/div/ul/li['+secondLiPosition+']/div/ul/li[4]/button')))  
+                        '//*[@id="all_stats_'+typ+'"]/div['+linkControlls[typ]['secondDivPosition']+']/div/ul/li['+linkControlls[typ]['secondLiPosition']+']/div/ul/li[4]/button')))  
                 except TimeoutException : 
                     print("Loading took too much time!")
                 finally:   
@@ -212,3 +188,43 @@ def get_all_data():
     browser.close()
     browser.quit()
 app.run(port=5000)
+
+
+# @app.route('/<int:numberOfLeague>/<string:types>')
+# def get_data_by_league(numberOfLeague, types):
+#     league = get_league_by_number(numberOfLeague)
+#     chrome_options = Options()
+#     chrome_options.headless = True
+#     chrome_options.add_argument('--disable-gpu')
+#     chrome_options.add_argument("--log-level=3")
+#     # chrome_options.add_argument("--headless")
+#     # chrome_options.add_argument('--disable-gpu')  # Last I checked this was necessary.
+#     browser = webdriver.Chrome('C:\\wamp64\\www\\chromedriver', options=chrome_options)
+#     link = 'https://fbref.com/en/comps/{}/'+types+'/'+league
+#     link = link.format(numberOfLeague)
+#     browser.get(link)
+#     if types == 'stats': types = 'standard'
+#     if types == 'keepers': types = 'keeper'
+#     elem1 = browser.find_element(
+#     By.XPATH, '//*[@id="all_stats_'+types+'_squads"]/div[1]/div/ul/li[1]')
+#     elem1.click()
+#     WebDriverWait(browser, 10).until(EC.element_to_be_clickable((By.XPATH, '//*[@id="all_stats_'+types+'_squads"]/div[1]/div/ul/li[1]/div/ul/li[4]/button'))).click()
+#     csv1 = browser.find_element(By.XPATH, '//*[@id="csv_stats_'+types+'_squads"]')
+#     response1 = csv1.text
+#     response1 = response1.replace(",", ";")
+#     if types == "shooting":
+#        response1 = response1.split("\n",1)[1];
+#     else : response1 = response1.split("\n",2)[2];
+#     elem = browser.find_element(
+#     By.XPATH, '//*[@id="all_stats_'+types+'"]/div[1]/div/ul/li[1]')
+#     elem.click()
+#     WebDriverWait(browser, 10).until(EC.element_to_be_clickable((By.XPATH, '//*[@id="all_stats_'+types+'"]/div[1]/div/ul/li[1]/div/ul/li[4]/button'))).click()
+#     csv = browser.find_element(By.XPATH, '//*[@id="csv_stats_'+types+'"]')
+#     response = csv.text
+#     response = response.replace(",", ";")
+#     if types == "shooting" or types == "passsing_types":
+#        response = response.split("\n",1)[1];
+#     else : response = response.split("\n",2)[2];
+#     browser.close()
+#     browser.quit()
+#     return response1
