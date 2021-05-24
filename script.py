@@ -31,9 +31,21 @@ linkControlls = {
     "defense" : { "liPosition" : '2', "secondLiPosition" : '2', "divPosition" : '2', "secondDivPosition" : '1'},
     "possession" : { "liPosition" : '2', "secondLiPosition" : '2', "divPosition" : '2', "secondDivPosition" : '2'}
 }
-types = ['possession','keepers', 'stats', 'passing', 'shooting', 'playingtime', 'keepersadv', 'misc', 'passing_types', 'defense']
-competitions = [19, 13, 8, 9, 12, 20, 11] 
+types = [ 'passing_types']#, 'possession','keepers', 'stats', 'passing', 'shooting', 'playingtime', 'keepersadv', 'misc', 'defense']
+competitions = [19]#, 13, 8, 9, 12, 20, 11] 
 checkKeeper = ['keeper', 'keeper_adv']
+
+def checkFirstLine(firstLine):
+    arraychecker = ['---', ';;;;', 'Sqaud', 'Player,Nation']
+    boolean = False
+    # print("line is " +firstLine)
+    if any(x in firstLine for x in arraychecker) :
+       boolean = True
+    if not firstLine.strip():  
+    #    print("empty line")
+       boolean = True
+    return boolean
+
 def get_league_by_number(argument): 
     switcher = { 
         13: "Ligue-1-Stats", 
@@ -76,7 +88,7 @@ def get_all_data():
     browser.set_window_size(3840, 2160)
 
     # print('________________________________________')
-    i = 0
+    # i = 0
     for competition in competitions:
         item = {}
         for typ in types:
@@ -118,7 +130,7 @@ def get_all_data():
                     liPos = str(int(liPos) + 1)
                     checktext = browser.find_element(By.XPATH,'//*[@id="stats_squads_'+typ+'_for_sh"]/div/ul/li['+liPos+']').text     
                     # print(checktext + ' - ' + liPos)
-                xpath = '//*[@id="stats_squads_'+typ+'_for_sh"]/div/ul/li['+liPos+']/span'
+                # xpath = '//*[@id="stats_squads_'+typ+'_for_sh"]/div/ul/li['+liPos+']/span'
                 # print(xpath)
                 elem1 = WebDriverWait(browser, 10, poll_frequency=2).until(
                 EC.presence_of_element_located((By.XPATH, '//*[@id="stats_squads_'+typ+'_for_sh"]/div/ul/li['+liPos+']/span'))
@@ -145,8 +157,21 @@ def get_all_data():
                     csv = browser.find_element(By.XPATH, '//*[@id="csv_stats_squads_'+typ+'_for"]')
                     responseForSqaud = csv.text
                     responseForSqaud = responseForSqaud.replace(",", ";")
-                    if typ == "shooting" or typ == "passsing_types": responseForSqaud = responseForSqaud.split("\n",1)[1]  
-                    else : responseForSqaud = responseForSqaud.split("\n",2)[2]      
+                    textForLoop = responseForSqaud
+                    j = 0
+                    # firstLine = csv.text.readlines()[j]
+                    # print(len(textForLoop.split("\n")))
+                    for itemm in textForLoop.split("\n"):
+                        #print(checkFirstLine(itemm))
+                        if checkFirstLine(itemm) == True :
+                            # print('fisrt line is line number '+ str(j))  
+                            j = j + 1
+                            # firstLine = responseForSqaud.readlines()[j]
+                        else : break  
+                    j = j + 1
+                    if typ == "shooting" or typ == "passsing_types": responseForSqaud = responseForSqaud.split("\n",j)[j]  
+                    else : responseForSqaud = responseForSqaud.split("\n",j)[j]   
+                    print('fisrt line is line number '+ str(j))  
                     item['squad '+typ] = responseForSqaud 
                     
 #Scapping the players's datas
@@ -196,8 +221,18 @@ def get_all_data():
                     print('________________________________________________')
                     response = csv.text
                     response = response.replace(",", ";")
-                    if typ == "shooting" or typ == "passsing_types":  response = response.split("\n",5)[5]          
-                    else : response = response.split("\n",6)[6]       
+                    j = 0
+                    textForLoop = response
+                    for itemm in textForLoop.split("\n"):
+                        #print(checkFirstLine(itemm))
+                        if checkFirstLine(itemm) == True :
+                            # print('fisrt line is line number '+ str(j))  
+                            j = j + 1
+                            # firstLine = responseForSqaud.readlines()[j]
+                        else : break    
+                    j = j + 1
+                    if typ == "shooting" or typ == "passsing_types":  response = response.split("\n",j)[j]          
+                    else : response = response.split("\n",j)[j]       
                     key = league+'-'+typ 
                     item[typ] = response      
             # else : print('No internet') 
