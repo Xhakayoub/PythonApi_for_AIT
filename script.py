@@ -12,6 +12,11 @@ from pyvirtualdisplay import Display
 from selenium.common.exceptions import TimeoutException
 import testConnection
 import time
+import curses
+import sys
+import time
+
+
 
 app = Flask(__name__)
 linkControlls = {
@@ -26,7 +31,7 @@ linkControlls = {
     "defense" : { "liPosition" : '2', "secondLiPosition" : '2', "divPosition" : '2', "secondDivPosition" : '1'},
     "possession" : { "liPosition" : '2', "secondLiPosition" : '2', "divPosition" : '2', "secondDivPosition" : '2'}
 }
-types = ['possession']#'keepers', 'stats', 'passing', 'shooting', 'playingtime', 'keepersadv', 'misc', 'passing_types', 'defense',
+types = ['possession','keepers', 'stats', 'passing', 'shooting', 'playingtime', 'keepersadv', 'misc', 'passing_types', 'defense']
 competitions = [19, 13, 8, 9, 12, 20, 11] 
 checkKeeper = ['keeper', 'keeper_adv']
 def get_league_by_number(argument): 
@@ -69,7 +74,9 @@ def get_all_data():
     browser = webdriver.Chrome('C:\\wamp64\\www\\chromedriver', options=chrome_options)
     # browser.set_page_load_timeout(5)    
     browser.set_window_size(3840, 2160)
-        
+
+    # print('________________________________________')
+    i = 0
     for competition in competitions:
         item = {}
         for typ in types:
@@ -82,7 +89,7 @@ def get_all_data():
             if league == 'Champions-League-Stats' or league == 'Europa-League-Stats' :      
                 liPosition = '3'
                 secondLiPosition = '2'
-            print(tosh)
+            # print(tosh)
             print('la competition : '+league)           
             link = 'https://fbref.com/en/comps/{}/'+typ+'/'+league
             link = link.format(competition)
@@ -98,36 +105,41 @@ def get_all_data():
                      liPosition = '4'
                      secondLiPosition = '3'               
             if typ == 'keepersadv': typ = 'keeper_adv'
-            print("le type : "+typ)
+            # print("le type : "+typ)
 #Scrapping the squad's datas 
-            print(testConnection.test_connection()) 
+            # print(testConnection.test_connection()) 
             while testConnection.test_connection() == False :
                 print('Waiting for internet ....')
                 time.sleep(5)
-            try:
-                xpath = '//*[@id="all_stats_squads_'+typ+'"]/div[1]/div/ul/li['+linkControlls[typ]['liPosition']+']/span'
-                print(xpath)
-                elem1 = WebDriverWait(browser, 100, poll_frequency=10).until(
-                EC.presence_of_element_located((By.XPATH, '//*[@id="all_stats_squads_'+typ+'"]/div[1]/div/ul/li['+linkControlls[typ]['liPosition']+']/span'))
+            try: 
+                liPos = '0'
+                checktext = ''
+                while checktext != 'Share & Export' :
+                    liPos = str(int(liPos) + 1)
+                    checktext = browser.find_element(By.XPATH,'//*[@id="stats_squads_'+typ+'_for_sh"]/div/ul/li['+liPos+']').text     
+                    # print(checktext + ' - ' + liPos)
+                xpath = '//*[@id="stats_squads_'+typ+'_for_sh"]/div/ul/li['+liPos+']/span'
+                # print(xpath)
+                elem1 = WebDriverWait(browser, 10, poll_frequency=2).until(
+                EC.presence_of_element_located((By.XPATH, '//*[@id="stats_squads_'+typ+'_for_sh"]/div/ul/li['+liPos+']/span'))
                 )
                 ActionChains(browser).move_to_element(elem1).perform()
             finally:
                 try:
-                    #//*[@id="all_stats_squads_keeper"]/div[1]/div/ul/li[3]/div/ul/li[4]/button
-                    print('//*[@id="all_stats_squads_'+typ+'"]/div[1]/div/ul/li['+linkControlls[typ]['liPosition']+']/div/ul/li[4]/button')
-                    getCsvButton1 = WebDriverWait(browser, 100, poll_frequency=10).until(
+                    # print('//*[@id="stats_squads_'+typ+'_for_sh"]/div/ul/li['+liPos+']/div/ul/li[4]/button')
+                    getCsvButton1 = WebDriverWait(browser, 10, poll_frequency=2).until(
                         EC.presence_of_element_located((By.XPATH, 
-                        '//*[@id="all_stats_squads_'+typ+'"]/div[1]/div/ul/li['+linkControlls[typ]['liPosition']+']/div/ul/li[4]/button')))
-                    print('located')
-                    getCsvButton1 = WebDriverWait(browser, 100, poll_frequency=10).until(
+                        '//*[@id="stats_squads_'+typ+'_for_sh"]/div/ul/li['+liPos+']/div/ul/li[4]/button')))
+                    # print('located')
+                    getCsvButton1 = WebDriverWait(browser, 10, poll_frequency=2).until(
                         EC.element_to_be_clickable((By.XPATH,
-                        '//*[@id="all_stats_squads_'+typ+'"]/div[1]/div/ul/li['+linkControlls[typ]['liPosition']+']/div/ul/li[4]/button')))
+                        '//*[@id="stats_squads_'+typ+'_for_sh"]/div/ul/li['+liPos+']/div/ul/li[4]/button')))
                 except TimeoutException : 
-                    print("Loading took too much time!")    
+                     print("Loading took too much time!")    
                 finally:
                     browser.execute_script("arguments[0].click();", getCsvButton1)     
                     # getCsvButton1.click()
-                    print('clicked')#//*[@id="csv_stats_squads_keeper_for"]/text()[2]
+                    # print('clicked')#//*[@id="csv_stats_squads_keeper_for"]/text()[2]
                     element1 = WebDriverWait(browser, 10, poll_frequency=2).until(
                         EC.presence_of_element_located((By.XPATH, '//*[@id="csv_stats_squads_'+typ+'_for"]')))
                     csv = browser.find_element(By.XPATH, '//*[@id="csv_stats_squads_'+typ+'_for"]')
@@ -138,7 +150,7 @@ def get_all_data():
                     item['squad '+typ] = responseForSqaud 
                     
 #Scapping the players's datas
-            print(testConnection.test_connection()) 
+            # print(testConnection.test_connection()) 
             while testConnection.test_connection() == False :
                 print('Waiting for internet ....')
                 time.sleep(5)
@@ -146,26 +158,32 @@ def get_all_data():
                 if competition == 19 and typ not in checkKeeper : 
                         secondLiPosition = '2'
                         divPosition = '2'
-                        #//*[@id="all_stats_keeper"]/div[1]/div/ul/li[3]/span
+                        #//*[@id="stats_keeper"]/div[1]/div/ul/li[3]/span
                         collpaseButton =  WebDriverWait(browser, 10, poll_frequency=2).until(
                         EC.element_to_be_clickable((By.XPATH,
                         '//*[@id="stats_'+typ+'_control"]')))
                         browser.execute_script("arguments[0].click();", collpaseButton)  
                         print('Collapse Button Clicked')   
-                print('//*[@id="all_stats_'+typ+'"]/div['+linkControlls[typ]['secondDivPosition']+']/div/ul/li['+linkControlls[typ]['secondLiPosition']+']/span')
-                elem = WebDriverWait(browser, 100, poll_frequency=10).until(
-                EC.presence_of_element_located((By.XPATH, '//*[@id="all_stats_'+typ+'"]/div['+linkControlls[typ]['secondDivPosition']+']/div/ul/li['+linkControlls[typ]['secondLiPosition']+']/span'))
+                liPos = '0'
+                checktext = ''
+                while checktext != 'Share & Export' :
+                    liPos = str(int(liPos) + 1) 
+                    checktext = browser.find_element(By.XPATH,'//*[@id="stats_'+typ+'_sh"]/div/ul/li['+liPos+']').text
+                    print(checktext + ' - ' + liPos)
+                print('//*[@id="stats_'+typ+'_sh"]/div/ul/li['+liPos+']/span')
+                elem = WebDriverWait(browser, 10, poll_frequency=2).until(
+                EC.presence_of_element_located((By.XPATH, '//*[@id="stats_'+typ+'_sh"]/div/ul/li['+liPos+']/span'))
                 )
             finally:   
                 ActionChains(browser).move_to_element(elem).perform()
                 try:
                     getCsvButton = WebDriverWait(browser, 10, poll_frequency=2).until(
                         EC.presence_of_element_located((By.XPATH,
-                            '//*[@id="all_stats_'+typ+'"]/div['+linkControlls[typ]['secondDivPosition']+']/div/ul/li['+linkControlls[typ]['secondLiPosition']+']/div/ul/li[4]/button')))
+                            '//*[@id="stats_'+typ+'_sh"]/div/ul/li['+liPos+']/div/ul/li[4]/button')))
                     print('located')
                     getCsvButton = WebDriverWait(browser, 10, poll_frequency=2).until(
                         EC.element_to_be_clickable((By.XPATH, 
-                        '//*[@id="all_stats_'+typ+'"]/div['+linkControlls[typ]['secondDivPosition']+']/div/ul/li['+linkControlls[typ]['secondLiPosition']+']/div/ul/li[4]/button')))  
+                        '//*[@id="stats_'+typ+'_sh"]/div/ul/li['+liPos+']/div/ul/li[4]/button')))  
                 except TimeoutException : 
                     print("Loading took too much time!")
                 finally:   
@@ -185,6 +203,7 @@ def get_all_data():
             # else : print('No internet') 
             data[league] = item    
     return data    
+
     browser.close()
     browser.quit()
 app.run(port=5000)
