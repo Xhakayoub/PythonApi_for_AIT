@@ -31,8 +31,8 @@ linkControlls = {
     "defense" : { "liPosition" : '2', "secondLiPosition" : '2', "divPosition" : '2', "secondDivPosition" : '1'},
     "possession" : { "liPosition" : '2', "secondLiPosition" : '2', "divPosition" : '2', "secondDivPosition" : '2'}
 }
-types = [ 'passing_types']#, 'possession','keepers', 'stats', 'passing', 'shooting', 'playingtime', 'keepersadv', 'misc', 'defense']
-competitions = [19]#, 13, 8, 9, 12, 20, 11] 
+types = [ 'passing_types', 'possession','keepers', 'stats', 'passing', 'shooting', 'playingtime', 'keepersadv', 'misc', 'defense']
+competitions = [19, 13, 8, 9, 12, 20, 11] 
 checkKeeper = ['keeper', 'keeper_adv']
 
 def checkFirstLine(firstLine):
