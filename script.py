@@ -14,7 +14,6 @@ import testConnection
 import time
 import curses
 import sys
-import time
 
 
 
@@ -83,7 +82,7 @@ def get_all_data():
     # chrome_options.add_argument("--disable-browser-side-navigation")
     # chrome_options.add_argument("--headless")
     # chrome_options.add_argument('--disable-gpu')  # Last I checked this was necessary.
-    browser = webdriver.Chrome('C:\\wamp64\\www\\chromedriver', options=chrome_options)
+    browser = webdriver.Chrome('/home/amouissi/Documents/projects/AITransfert/chromedriver', options=chrome_options)
     # browser.set_page_load_timeout(5)    
     browser.set_window_size(3840, 2160)
 
