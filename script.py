@@ -31,7 +31,7 @@ linkControlls = {
     "defense" : { "liPosition" : '2', "secondLiPosition" : '2', "divPosition" : '2', "secondDivPosition" : '1'},
     "possession" : { "liPosition" : '2', "secondLiPosition" : '2', "divPosition" : '2', "secondDivPosition" : '2'}
 }
-types = [ 'passing_types'] #, 'possession','keepers', 'stats', 'passing', 'shooting', 'playingtime', 'keepersadv', 'misc', 'defense']
+types = [ 'passing_types', 'possession','keepers', 'stats', 'passing', 'shooting', 'playingtime', 'keepersadv', 'misc', 'defense']
 competitions = [19]#, 13, 8, 9, 12, 20, 11] 
 checkKeeper = ['keeper', 'keeper_adv']
 
@@ -83,7 +83,7 @@ def get_all_data():
     # chrome_options.add_argument("--disable-browser-side-navigation")
     # chrome_options.add_argument("--headless")
     # chrome_options.add_argument('--disable-gpu')  # Last I checked this was necessary.
-    browser = webdriver.Chrome('C:\\wamp64\\www\\chromedriver', options=chrome_options)
+    browser = webdriver.Chrome('/home/amouissi/Documents/projects/AITransfert/chromedriver', options=chrome_options)
     # browser.set_page_load_timeout(5)    
     browser.set_window_size(3840, 2160)
 
